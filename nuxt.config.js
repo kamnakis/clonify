@@ -1,13 +1,19 @@
 require('dotenv').config()
 
 export default {
+  server: {
+    port: 8080,
+    host: '0.0.0.0'
+  },
+
   // Global page headers (https://go.nuxtjs.dev/config-head)
   head: {
     title: 'spotify-clone',
     meta: [
       { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' }
+      { name: 'viewport', content: 'width=device-width, initial-scale=1, user-scalable=0' },
+      { hid: 'description', name: 'description', content: '' },
+      { name: 'theme-color', content: '#242424' }
     ],
     link: [
       { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
@@ -21,7 +27,11 @@ export default {
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
   plugins: [
     '~/plugins/composition-api',
-    '~/plugins/axios'
+    '~/plugins/axios',
+    {
+      src: '~/plugins/vue-touch',
+      ssr: false
+    }
   ],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)
@@ -33,6 +43,7 @@ export default {
     '@nuxt/typescript-build',
     // https://go.nuxtjs.dev/tailwindcss
     '@nuxtjs/tailwindcss',
+    '@nuxtjs/vuetify',
     '@nuxtjs/fontawesome'
   ],
 
@@ -40,8 +51,25 @@ export default {
     component: 'fa',
     suffix: true,
     icons: {
-      solid: ['faPlay', 'faPause', 'faStop', 'faPlayCircle', 'faSignOutAlt'],
-      regular: [],
+      solid: [
+        'faPlay',
+        'faPause',
+        'faStop',
+        'faPlayCircle',
+        'faSignOutAlt',
+        'faStepForward',
+        'faStepBackward',
+        'faChevronLeft',
+        'faEllipsisH',
+        'faHeart',
+        'faTimes',
+        'faVolumeUp',
+        'faDoorOpen',
+        'faPlus'
+      ],
+      regular: [
+        'faHeart'
+      ],
       light: [],
       duotone: [],
       brands: []
@@ -56,6 +84,10 @@ export default {
     '@nuxtjs/auth'
   ],
 
+  pwa: {
+    icon: false // disables the icon module
+  },
+
   // Axios module configuration (https://go.nuxtjs.dev/config-axios)
   axios: {
     baseURL: process.env.API_AUTH_URL,
@@ -64,6 +96,9 @@ export default {
 
   // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {
+    extractCSS: {
+      ignoreOrder: false
+    }
   },
 
   auth: {

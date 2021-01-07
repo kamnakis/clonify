@@ -6,44 +6,28 @@
     <form
       v-if="!success"
       class="w-full flex-grow bg-gray-1 p-4 py-8 flex flex-col items-center justify-start space-y-4"
-      @submit.prevent="register()"
+      @submit.prevent="resetPassword()"
     >
       <input
-        v-model="registerFields.username"
-        type="text"
-        name="username"
-        placeholder="username"
-        class="input-field"
-        required
-      >
-      <input
-        v-model="registerFields.email"
-        type="email"
-        name="email"
-        placeholder="email"
-        class="input-field"
-        required
-      >
-      <input
-        v-model="registerFields.password"
+        v-model="formFields.password"
         type="password"
         name="password"
-        placeholder="password"
+        placeholder="new password"
         class="input-field"
         pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
         required
         :class="{
-          'border-2 border-red-800': registerFields.password && !registerFields.password.match(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/g)
+          'border-2 border-red-800': formFields.password && !formFields.password.match(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/g)
         }"
       >
       <input
-        v-model="registerFields.passwordRepeat"
+        v-model="formFields.passwordRepeat"
         type="password"
         name="passwordRepeat"
-        placeholder="repeat password"
+        placeholder="repeat new password"
         class="input-field"
         :class="{
-          'border-2 border-red-800': registerFields.passwordRepeat && !passwordsMatch
+          'border-2 border-red-800': formFields.passwordRepeat && !passwordsMatch
         }"
         required
       >
@@ -55,13 +39,13 @@
         {{ clientError }}
       </div>
       <button type="submit" class="submit-button">
-        Register
+        Reset Password
       </button>
       <nuxt-link
         class="text-white"
         to="/login"
       >
-        Already have an account? Login here!
+        Login here!
       </nuxt-link>
     </form>
     <div
@@ -69,21 +53,19 @@
       class="w-full p-4 bg-green-600 bg-opacity-75 text-white font-medium"
     >
       {{ success }}
+      <nuxt-link to="/login">Login</nuxt-link>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, reactive, ref } from '@vue/composition-api'
-import { RegisterFields } from '~/models/Auth'
+import { computed, defineComponent, onMounted, reactive, ref } from '@vue/composition-api'
 
 export default defineComponent({
-  name: 'Register',
+  name: 'ResetPassword',
   middleware: 'guest',
   setup (_, { root }) {
-    const registerFields = reactive<RegisterFields>({
-      username: '',
-      email: '',
+    const formFields = reactive({
       password: '',
       passwordRepeat: ''
     })
@@ -91,10 +73,19 @@ export default defineComponent({
     const success = ref('')
     const error = ref('')
 
+    const code = ref('')
+
+    onMounted(() => {
+      if (!root.$route.query.code) {
+        root.$router.push('/forgot-password')
+      } else {
+        code.value = root.$route.query.code as string
+      }
+    })
+
     const passwordsMatch = computed(() => {
-      const match = registerFields.password === registerFields.passwordRepeat
-      if (!match && registerFields.password && registerFields.passwordRepeat) {
-        error.value = ''
+      const match = formFields.password === formFields.passwordRepeat
+      if (!match && formFields.password && formFields.passwordRepeat) {
         clientError.value = 'Passowrds don\'t match.'
         return false
       } else {
@@ -103,12 +94,16 @@ export default defineComponent({
       }
     })
 
-    const register = async () => {
+    const resetPassword = async () => {
       try {
         if (passwordsMatch.value) {
           root.$axios.setToken(false)
-          await root.$axios.post('auth/local/register', registerFields)
-          success.value = 'A confirmation link has been sent to your email account. Please click on the link to complete the registration process.'
+          await root.$axios.post('auth/reset-password', {
+            code: code.value,
+            password: formFields.password,
+            passwordConfirmation: formFields.passwordRepeat
+          })
+          success.value = 'Password updated successfully. You can now use it to log in to your account.'
         }
       } catch (e) {
         error.value = e.response.data.message[0].messages[0].message
@@ -116,12 +111,12 @@ export default defineComponent({
     }
 
     return {
-      registerFields,
+      formFields,
       passwordsMatch,
+      resetPassword,
       clientError,
       error,
-      success,
-      register
+      success
     }
   }
 })

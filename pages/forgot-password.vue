@@ -4,85 +4,81 @@
       <img src="~/assets/images/clonify_logo.png" alt="logo">
     </div>
     <form
-      class="w-full flex-grow login-form bg-gray-1 p-4 py-8 flex flex-col items-center justify-start space-y-4"
-      @submit.prevent="login()"
+      v-if="!success"
+      class="w-full flex-grow bg-gray-1 p-4 py-8 flex flex-col items-center justify-start space-y-4"
+      @submit.prevent="forgotPassword()"
     >
       <input
-        v-model="loginFields.identifier"
-        type="text"
-        name="identifier"
-        placeholder="email or username"
+        v-model="formFields.email"
+        type="email"
+        name="email"
+        placeholder="email"
         class="input-field"
         required
       >
-      <input
-        v-model="loginFields.password"
-        type="password"
-        name="password"
-        placeholder="password"
-        class="input-field"
-        required
-      >
-      <label
-        v-if="error"
+      <div
+        v-if="error || clientError"
         class="text-white"
       >
         {{ error }}
-      </label>
+        {{ clientError }}
+      </div>
       <button type="submit" class="submit-button">
-        Login
+        Send Email
       </button>
       <nuxt-link
         class="text-white"
-        to="/forgot-password"
+        to="/login"
       >
-        Forgot your password?
-      </nuxt-link>
-      <nuxt-link
-        class="text-white"
-        to="/register"
-      >
-        Don't have an account? Register
+        Login here!
       </nuxt-link>
     </form>
+    <div
+      v-else
+      class="w-full p-4 bg-green-600 bg-opacity-75 text-white font-medium"
+    >
+      {{ success }}
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, reactive, ref } from '@vue/composition-api'
-import { LoginFields } from '~/models/Auth'
 
 export default defineComponent({
-  name: 'Login',
+  name: 'ForgotPassword',
   middleware: 'guest',
   setup (_, { root }) {
-    const loginFields = reactive<LoginFields>({
-      identifier: '',
-      password: ''
+    const formFields = reactive({
+      email: ''
     })
+    const clientError = ref('')
+    const success = ref('')
     const error = ref('')
 
-    const login = async () => {
+    const forgotPassword = async () => {
       try {
-        await root.$auth.loginWith('local', {
-          data: loginFields
-        })
-        root.$router.push('/')
+        await root.$axios.post('auth/forgot-password', formFields)
+        error.value = ''
+        success.value = 'A reset password link has been sent to your email account. Please click on the link to complete the password reset.'
+        // root.$router.push('/')
       } catch (e) {
         error.value = e.response.data.message[0].messages[0].message
       }
     }
 
     return {
-      loginFields,
-      login,
-      error
+      formFields,
+      forgotPassword,
+      clientError,
+      error,
+      success
     }
   }
 })
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .input-field {
   @apply text-lg font-medium text-gray-3 bg-white shadow-md p-2 w-full;
 }

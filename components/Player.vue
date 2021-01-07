@@ -1,50 +1,159 @@
 <template>
   <div
-    class="absolute bottom-0 w-full bg-gray-800 rounded-t-2xl flex flex-col"
+    class="fixed inset-0 z-20"
+    :class="{
+      'pointer-events-none': isMinimized
+    }"
   >
     <audio ref="audioPlayer" class="hidden" :src="audioTrack" />
-
-    <div class="pt-4 px-6 text-white flex items-center">
-      <fa-icon
-        v-if="!isSongPlaying"
-        icon="play"
-        class="text-2xl mr-4 cursor-pointer"
-        @click="playSong()"
-      />
-      <fa-icon
-        v-if="isSongPlaying"
-        icon="pause"
-        class="text-2xl mr-4 cursor-pointer"
-        @click="pauseSong()"
-      />
-      <fa-icon
-        icon="stop"
-        class="text-2xl mr-4 cursor-pointer"
-        @click="stopSong()"
-      />
-      <div>
-        {{ currentSeconds }} / {{ totalSeconds }}
+    <transition name="rotate">
+      <div
+        v-if="!isMinimized"
+        v-touch:swipe.bottom="() => { isMinimized = true }"
+        v-touch:swipe.right="() => { nextSong() }"
+        v-touch:swipe.left="() => { prevSong() }"
+        class="relative w-full h-full"
+      >
+        <!-- Music Page -->
+        <div
+          class="absolute half-bg bottom-0 h-full w-full d-flex flex-column pb-40"
+        >
+          <div class="w-full mt-8 px-6 flex justify-start items-center text-gray-2">
+            <fa-icon icon="chevron-left" class="text-xl cursor-pointer" @click="isMinimized = true" />
+          </div>
+          <div
+            class="mt-8 mx-auto rounded-4xl bg-green-1 flex items-center justify-center overflow-hidden flex-grow-0"
+            style="width: 18rem; height: 18rem"
+          >
+            <v-img
+              v-if="currentSong"
+              :src="apiUrl + currentSong.artist.profile_image.url"
+              class="w-full h-full object-cover object-center"
+              gradient="to top right, rgba(132, 218, 165, 0.33), rgba(69, 128, 92, 0.66)"
+            />
+          </div>
+          <div class="w-full px-10 mt-8 flex justify-between items-start text-gray-2">
+            <label>
+              <input v-model="isFavorite" type="checkbox" class="hidden">
+              <fa-icon :icon="[`${isFavorite ? 'fa' : 'far'}`, 'heart']" class="text-xl cursor-pointer text-green-1" />
+            </label>
+            <div v-if="currentSong" class="text-center font-bold text-black text-lg leading-6">
+              {{ currentSong.title }}<br>
+              <span class="text-gray-600 font-normal text-sm">
+                {{ `${currentSong.artist.first_name} ${currentSong.artist.last_name}` }}
+              </span>
+            </div>
+            <fa-icon icon="times" class="text-xl cursor-pointer text-gray-2" @click="stopSong()" />
+          </div>
+          <div class="w-full px-10 flex justify-center">
+            <v-slider
+              :value="timePercent"
+              dense
+              min="0"
+              max="100"
+              track-color="gray"
+              track-fill-color="#84DAA5"
+              thumb-color="#84DAA5"
+              @change="changeSliderDuration"
+            />
+          </div>
+          <div class="w-full px-12 flex justify-between -mt-6">
+            <div>{{ currentSeconds }}</div>
+            <div>{{ totalSeconds }}</div>
+          </div>
+        </div>
+        <!-- Music Player -->
+        <div class="absolute bottom-0 w-full">
+          <!-- Maximized -->
+          <div
+            class="reverse-rounded w-full bg-gray-2 h-40 pt-8 px-6 flex items-center justify-around transition-opacity duration-400"
+            :style="{
+              opacity: isMinimized ? '0' : '1',
+            }"
+          >
+            <fa-icon
+              icon="step-backward"
+              class="text-white text-2xl cursor-pointer"
+              :class="{
+                'cursor-default pointer-events-none text-gray-200 text-opacity-50': $nuxt.$store.getters['player/tracksCount'] <= 1
+              }"
+              @click="prevSong()"
+            />
+            <v-progress-circular
+              :rotate="-90"
+              :size="60"
+              :width="5"
+              :value="timePercent"
+              class="text-green-1 cursor-pointer"
+              @click="isSongPlaying ? pauseSong() : playSong()"
+            >
+              <div class="w-full h-full flex items-center justify-center">
+                <fa-icon v-if="!isSongPlaying" icon="play" class="text-lg" />
+                <fa-icon v-else icon="pause" class="text-lg" />
+              </div>
+            </v-progress-circular>
+            <fa-icon
+              icon="step-forward"
+              class="text-white text-2xl cursor-pointer"
+              :class="{
+                'cursor-default pointer-events-none text-gray-200 text-opacity-50': $nuxt.$store.getters['player/tracksCount'] <= 1
+              }"
+              @click="nextSong()"
+            />
+          </div>
+        </div>
       </div>
-    </div>
+    </transition>
 
-    <div
-      class="px-6 py-2 text-white truncate"
-      :class="{
-        'animate-pulse': isSongPlaying
-      }"
-    >
-      <template v-if="currentSong">
-        {{ currentSong.title }} by {{ currentSong.artist.first_name }} {{ currentSong.artist.last_name }}
-      </template>
-      <template v-else>
-        No song selected.
-      </template>
-    </div>
-
-    <div
-      class="slider bottom-0 bg-green-500 h-1 w-1/3"
-      :style="{ width: `${timePercent}%`}"
-    />
+    <!-- Minimized Player -->
+    <transition name="slide">
+      <div
+        v-if="isMinimized && $store.getters['player/currentTrack'] !== null"
+        v-touch:swipe.top="() => { isMinimized = false }"
+        class="fixed bottom-0 w-full bg-green-1 rounded-t-4xl px-8 flex items-center justify-between"
+        :class="{
+          'pointer-events-auto': isMinimized
+        }"
+        :style="{
+          height: '7rem'
+        }"
+      >
+        <div
+          class="h-16 w-16 rounded-3xl bg-gray-500 overflow-hidden"
+          @click="isMinimized = false"
+        >
+          <v-img
+            v-if="currentSong"
+            :src="apiUrl + currentSong.artist.profile_image.url"
+            class="w-full h-full object-cover object-center cursor-pointer"
+          />
+        </div>
+        <div
+          v-if="currentSong"
+          class="flex flex-col ml-6"
+        >
+          <div class="text-xs text-gray-2">
+            Now Playing
+          </div>
+          <div class="text-base font-medium text-gray-2">
+            {{ currentSong.title }}
+          </div>
+        </div>
+        <v-progress-circular
+          :rotate="-90"
+          :size="40"
+          :width="4"
+          :value="timePercent"
+          class="text-gray-2 cursor-pointer"
+          @click="isSongPlaying ? pauseSong() : playSong()"
+        >
+          <div class="w-full h-full flex items-center justify-center">
+            <fa-icon v-if="!isSongPlaying" icon="play" class="text-sm" />
+            <fa-icon v-else icon="pause" class="text-sm" />
+          </div>
+        </v-progress-circular>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -55,9 +164,12 @@ import { Song } from '~/models/Song'
 export default defineComponent({
   name: 'Player',
   setup (_, { root }) {
+    const isMinimized = ref(true)
+    const isFavorite = ref(true)
+
     const audioPlayer = ref<HTMLAudioElement | null>(null)
     const currentSong = computed(() => {
-      return root.$store.getters['player/currentTrack'] as Song | null
+      return (root.$store.getters['player/tracks'] as Song[])[root.$store.getters['player/currentTrack'] as number]
     })
     watch(currentSong, () => {
       canPlay.value = false
@@ -80,6 +192,7 @@ export default defineComponent({
     const currentSeconds = ref('00:00')
     const totalSeconds = ref('00:00')
     const timePercent = ref(0)
+    const sliderDuration = ref(0)
 
     watch(audioPlayer, () => {
       if (audioPlayer.value) {
@@ -87,6 +200,7 @@ export default defineComponent({
           if (audioPlayer.value) {
             canPlay.value = true
             audioPlayer.value.play()
+            isSongPlaying.value = true
           }
         })
         audioPlayer.value.addEventListener('pause', () => {
@@ -101,7 +215,7 @@ export default defineComponent({
         })
         audioPlayer.value.addEventListener('ended', () => {
           if (audioPlayer.value) {
-            audioPlayer.value.currentTime = 0
+            nextSong()
           }
         })
         audioPlayer.value.addEventListener('durationchange', () => {
@@ -115,6 +229,16 @@ export default defineComponent({
             timePercent.value = audioPlayer.value.currentTime * 100 / audioPlayer.value.duration
           }
         })
+      }
+    })
+
+    const changeSliderDuration = (val: number) => {
+      sliderDuration.value = val
+    }
+
+    watch(sliderDuration, () => {
+      if (audioPlayer.value) {
+        audioPlayer.value.currentTime = (sliderDuration.value * audioPlayer.value.duration) / 100
       }
     })
 
@@ -134,38 +258,73 @@ export default defineComponent({
         audioPlayer.value.pause()
       }
     }
+    const nextSong = () => {
+      root.$store.dispatch('player/setCurrentTrack', root.$store.getters['player/currentTrack'] !== null ? root.$store.getters['player/currentTrack'] + 1 : null)
+    }
+    const prevSong = () => {
+      root.$store.dispatch('player/setCurrentTrack', root.$store.getters['player/currentTrack'] !== null ? root.$store.getters['player/currentTrack'] - 1 : null)
+    }
 
     return {
+      isMinimized,
+      isFavorite,
       audioPlayer,
       currentSong,
       audioTrack,
       isSongPlaying,
+      sliderDuration,
+      changeSliderDuration,
       totalSeconds,
       currentSeconds,
       timePercent,
       playSong,
       pauseSong,
-      stopSong
+      stopSong,
+      apiUrl: process.env.API_AUTH_URL,
+      nextSong,
+      prevSong
     }
   }
 })
 </script>
 
-<style scoped>
-.slider {
-  position: relative;
+<style lang="scss" scoped>
+.reverse-rounded {
+  @apply relative border-none;
 }
 
-.slider:hover::after {
+.reverse-rounded::before {
   content: '';
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 15px;
-  height: 10px;
-  background-color: inherit;
-  border-top-left-radius: 999999px;
-  border-top-right-radius: 999999px;
-  cursor: pointer;
+  top: -1px;
+
+  @apply w-full h-8 bg-white half-bg rounded-b-4xl border-none;
+}
+
+.half-bg {
+  background: rgb(238,238,238);
+  background: linear-gradient(90deg, rgb(238, 238, 238) 0%, rgba(238,238,238,1) 66%, rgba(255,255,255,1) 66%, rgba(255,255,255,1) 100%);
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.5s;
+}
+
+.slide-enter,
+.slide-leave-to {
+  opacity: 0;
+  transform: translateY(8rem);
+}
+
+.rotate-enter-active,
+.rotate-leave-active {
+  transition: all 0.5s;
+}
+
+.rotate-enter,
+.rotate-leave-to {
+  opacity: 0;
+  transform: rotateY(90deg)
 }
 </style>
