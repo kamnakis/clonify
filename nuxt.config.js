@@ -6,6 +6,8 @@ export default {
     host: '0.0.0.0'
   },
 
+  ssr: false,
+
   router: { base: '/clonify/' },
 
   // Global page headers (https://go.nuxtjs.dev/config-head)
