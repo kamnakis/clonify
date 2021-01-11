@@ -88,7 +88,7 @@ export default {
 
   // Axios module configuration (https://go.nuxtjs.dev/config-axios)
   axios: {
-    baseURL: process.env.API_AUTH_URL || 'https://127.0.0.1:1337',
+    baseURL: process.env.API_AUTH_URL || 'http://127.0.0.1:1337',
     progress: false
   },
 
