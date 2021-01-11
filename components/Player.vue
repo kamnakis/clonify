@@ -128,7 +128,7 @@
         >
           <v-img
             v-if="currentSong"
-            :src="apiUrl + currentSong.artist.profile_image.url"
+            :src="currentSong.artist.profile_image.url"
             class="w-full h-full object-cover object-center cursor-pointer"
           />
         </div>
