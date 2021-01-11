@@ -6,7 +6,7 @@ export default {
     host: '0.0.0.0'
   },
 
-  ssr: false,
+  target: 'static',
 
   router: { base: '/clonify/' },
 
