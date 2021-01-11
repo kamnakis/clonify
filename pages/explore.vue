@@ -56,7 +56,7 @@ import { defineComponent, onMounted, onUnmounted, ref, watch } from '@vue/compos
 import { Song } from '~/models/Song'
 
 export default defineComponent({
-  name: 'Playlists',
+  name: 'Explore',
   middleware: 'auth',
   setup (_, { root }) {
     const dialog = ref(false)

@@ -90,7 +90,7 @@ export default {
 
   // Axios module configuration (https://go.nuxtjs.dev/config-axios)
   axios: {
-    baseURL: process.env.API_AUTH_URL || 'http://127.0.0.1:1337',
+    baseURL: process.env.NODE_ENV === 'production' ? process.env.API_AUTH_URL : 'http://127.0.0.1:1337',
     progress: false
   },
 
@@ -118,6 +118,12 @@ export default {
           logout: false
         }
       }
+    },
+    redirect: {
+      login: '/login',
+      logout: '/login',
+      callback: '/login',
+      home: '/'
     }
   }
 }

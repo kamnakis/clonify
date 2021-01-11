@@ -80,6 +80,7 @@ export default defineComponent({
 
 <style scoped>
 .input-field {
+  max-width: 320px !important;
   @apply text-lg font-medium text-gray-3 bg-white shadow-md p-2 w-full;
 }
 
@@ -92,6 +93,7 @@ export default defineComponent({
 }
 
 .submit-button {
+  max-width: 320px !important;
   @apply text-lg font-medium text-white bg-gray-3 shadow-md p-2 w-full;
 }
 

@@ -2,7 +2,10 @@
   <div>
     <v-app>
       <!-- Header -->
-      <div class="fixed left-0 right-0 top-0 my-8 px-6 flex justify-between items-center text-white z-10">
+      <div
+        v-if="!pathsToHidePlayer.includes($nuxt.$route.path)"
+        class="fixed left-0 right-0 top-0 my-8 px-6 flex justify-between items-center text-white z-10"
+      >
         <!-- Back button -->
         <fa-icon
           icon="chevron-left"
@@ -89,13 +92,18 @@ import { defineComponent, ref } from '@vue/composition-api'
 export default defineComponent({
   name: 'Layout',
   setup (_, { root }) {
-    const pathsToHidePlayer = ref(['/login', '/register', '/forgot-password'])
+    const pathsToHidePlayer = ref(['/login', '/register', '/forgot-password', '/reset-password'])
 
     const logout = async () => {
-      await root.$auth.logout()
-      await root.$router.push('/login')
-      await root.$store.dispatch('player/setTracks', [])
-      await root.$store.dispatch('player/setCurrentTrack', null)
+      try {
+        await root.$auth.logout()
+        // Clear data
+        await root.$store.dispatch('player/setTracks', [])
+        await root.$store.dispatch('player/setCurrentTrack', null)
+        localStorage.clear()
+      } catch (error) {
+        error.value = error
+      }
     }
 
     return {
@@ -110,7 +118,6 @@ export default defineComponent({
 *,
 *::before,
 *::after {
-  overscroll-behavior-y: none;
   box-sizing: border-box;
   margin: 0;
 }

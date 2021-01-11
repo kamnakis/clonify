@@ -5,7 +5,7 @@
     </div>
     <form
       class="w-full flex-grow login-form bg-gray-1 p-4 py-8 flex flex-col items-center justify-start space-y-4"
-      @submit.prevent="login()"
+      @submit.prevent="login"
     >
       <input
         v-model="loginFields.identifier"
@@ -67,7 +67,6 @@ export default defineComponent({
         await root.$auth.loginWith('local', {
           data: loginFields
         })
-        root.$router.push('/')
       } catch (e) {
         error.value = e.response.data.message[0].messages[0].message
       }
@@ -84,6 +83,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .input-field {
+  max-width: 320px !important;
   @apply text-lg font-medium text-gray-3 bg-white shadow-md p-2 w-full;
 }
 
@@ -96,6 +96,7 @@ export default defineComponent({
 }
 
 .submit-button {
+  max-width: 320px !important;
   @apply text-lg font-medium text-white bg-gray-3 shadow-md p-2 w-full;
 }
 
