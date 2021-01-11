@@ -156,6 +156,7 @@ import { Song } from '~/models/Song'
 
 export default defineComponent({
   name: 'Playlists',
+  middleware: 'auth',
   setup (_, { root }) {
     const dialog = ref(false)
     const playlists = ref([])

@@ -80,6 +80,7 @@ import { Song } from '~/models/Song'
 
 export default defineComponent({
   name: 'Playlist',
+  middleware: 'auth',
   setup (_, { root }) {
     const playlist = ref<any>(null)
     watch(playlist, () => {
@@ -107,9 +108,14 @@ export default defineComponent({
     })
 
     const getPlaylist = () => {
-      root.$axios.get(`playlists/${root.$route.params.id}`).then((response) => {
-        playlist.value = response.data
-      })
+      try {
+        root.$axios.get(`playlists/${root.$route.params.id}`).then((response) => {
+          playlist.value = response.data
+        })
+      } catch (error) {
+        displayError('Playlist does not exist.')
+        root.$router.push('/')
+      }
     }
 
     const isThisSongPlaying = (song: Song) => {
