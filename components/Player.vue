@@ -29,7 +29,7 @@
           >
             <v-img
               v-if="currentSong"
-              :src="apiUrl + currentSong.artist.profile_image.url"
+              :src="currentSong.artist.profile_image.url"
               class="w-full h-full object-cover object-center"
               gradient="to top right, rgba(132, 218, 165, 0.33), rgba(69, 128, 92, 0.66)"
             />
@@ -184,8 +184,8 @@ export default defineComponent({
     })
 
     const audioTrack = computed(() => {
-      if (process.env.API_AUTH_URL && currentSong.value) {
-        return process.env.API_AUTH_URL + currentSong.value.file.url
+      if (currentSong.value) {
+        return currentSong.value.file.url
       } else {
         return null
       }
