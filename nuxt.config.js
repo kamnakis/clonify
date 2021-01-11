@@ -29,11 +29,7 @@ export default {
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
   plugins: [
     '~/plugins/composition-api',
-    '~/plugins/axios',
-    {
-      src: '~/plugins/vue-touch',
-      ssr: false
-    }
+    '~/plugins/axios'
   ],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)

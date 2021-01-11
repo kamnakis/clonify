@@ -9,9 +9,11 @@
     <transition name="rotate">
       <div
         v-if="!isMinimized"
-        v-touch:swipe.bottom="() => { isMinimized = true }"
-        v-touch:swipe.right="() => { nextSong() }"
-        v-touch:swipe.left="() => { prevSong() }"
+        v-touch="{
+          left: () => { prevSong() },
+          right: () => { nextSong() },
+          down: () => { isMinimized = true }
+        }"
         class="relative w-full h-full"
       >
         <!-- Music Page -->
@@ -109,7 +111,9 @@
     <transition name="slide">
       <div
         v-if="isMinimized && $store.getters['player/currentTrack'] !== null"
-        v-touch:swipe.top="() => { isMinimized = false }"
+        v-touch="{
+          up: () => { isMinimized = false }
+        }"
         class="fixed bottom-0 w-full bg-green-1 rounded-t-4xl px-8 flex items-center justify-between"
         :class="{
           'pointer-events-auto': isMinimized
