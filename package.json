@@ -21,7 +21,7 @@
     "@nuxtjs/dotenv": "^1.4.1",
     "@vue/composition-api": "^1.0.0-beta.22",
     "core-js": "^3.6.5",
-    "nuxt": "^2.14.6"
+    "nuxt": "^3.4.3"
   },
   "devDependencies": {
     "@fortawesome/free-brands-svg-icons": "^5.15.1",
